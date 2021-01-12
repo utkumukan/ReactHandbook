@@ -14,7 +14,8 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
 
  * Update durumu ise bildiğimiz gibi componentimizin tekrar render edilmesi durumudur. **Bu durumun gerçekleşmesi için ya state'imiz güncellenmiş olmalı ya da props'umuz.** Bu konu da aslında incelenmesi gereken farklı açılara sahip olduğu için ilerleyen senaryolarda işlenecek fakat basit bir örnek üzerinden temel haline bakalım.
 
-_[React-Ornek-1](https://codesandbox.io/s/react-ornek-1-mb5bx)_
+<a href="https://codesandbox.io/s/react-ornek-1-mb5bx" target="_blank"><i>React-Ornek-1</i></a>
+ 
  ```javascript
     const Child = (props) => {
         const { year } = props;
