@@ -420,5 +420,5 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
         if (sgkFlag === true) {
             getSocialInsurences();
         }
-    }, [count]);
+    }, [sgkFlag]);
     ```
