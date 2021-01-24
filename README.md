@@ -290,7 +290,7 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
 
     Eğer ki useEffect içerisinde karmaşık bir yapı kurmak istemiyorsanız herbir bağımlılık için ayrı ayrı useEffect oluşturabilirsiniz. mount durumunda her iki useEffect de çalışır, sonraki güncelemelerde ise hangi bağımlılıkta değişim varsa sadece o bağımlılığın useEffect'i çalışır.
 
-## useEffect'i sadece update durumunda kullanmak
+## useRef yardımıyla useEffect'i sadece update durumunda kullanmak
 
 * Bundan önceki örneklerimizde update senaryolarını irdelerken mount durumunda da useEffect'in çalıştığını görmüştük. Fakat bu her zaman isteyeceğimiz bir durum olmayabilir. Bu senaryoda useRef hook'undan faydalanarak useEffect'i sadece update durumunda çalıştırıcaz.
     
@@ -354,7 +354,7 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
     }, [count]);
     ```
 
-## useEffect'i yalnızca bir kez kullanmak
+## useRef yardımıyla useEffect'i yalnızca bir kez kullanmak
 
 * useEffect'i yalnızca bir kez kullandığımız bir senaryomuz vardı fakat o senaryoda bağımlılık array'ini boş geçerek yalnızca mount durumunda çalıştırıyorduk useEffect'imizi. Bu senaryomuzda ise bağımlılığımız'ın özel bir durumunu kontrol edip ilgili update'i yakalayınca useEffect'imizi kullanıcaz.
 
