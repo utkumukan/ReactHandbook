@@ -5,7 +5,7 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
  * bir componentin mount (first render) ve update (every re-render) durumları ve bağımlılıkları, 
  * agırlıklı olarak useEffect kullanımı, 
  * birkaç örnekle useRef kullanımı, 
- * child-parent ve parent-child iletişimleri ve
+ * parent to child ve child to parent iletişimleri ve
  * kendi hook'umuzu nasıl yazarız.
 
 ## Bir componentin mount (first render) ve update (every re-render) durumları ve bağımlılıkları
@@ -44,7 +44,7 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
     };
     ```
 
-    Örnekte de görüldüğü üzere App componentinin state durumunu yönettiği ve bu state'i Child component'i ile paylaştığı bu senaryomuzda butona tıklanması sonucu year state'i güncelleniyor. **State** güncellendiği için önce App komponent kendini re-render ediyor, App componentinin state'i Child componentinin **props**'u olduğu için haliyle Child componenti de props değşikliğinden dolayı re-render oluyor.
+    Örnekte de görüldüğü üzere App componentinin state durumunu yönettiği ve bu state'i Child component'i ile paylaştığı bu senaryomuzda butona tıklanması sonucu year state'i güncelleniyor. **State** güncellendiği için önce App component kendini re-render ediyor, App componentinin state'i Child componentinin **props**'u olduğu için haliyle Child componenti de props değşikliğinden dolayı re-render oluyor.
 
 ## useEffect'i her durumda (mount ve update) kullanmak
 
@@ -422,3 +422,288 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
         }
     }, [sgkFlag]);
     ```
+
+## parent to child (p->c) & child to parent (c->p) ilişkileri
+
+* **p->c** ilişkisini kurmak için kullandığımız component'e prop geçmemiz yeterli ve bunu sık sık yapıyoruz. Örneğin;
+
+    ```javascript
+    const [code] = useState('BSN0000000');
+
+    return <Customer code={code} />;
+    ```
+
+    Bu kullanımda Customer component'ini çağırdığımız yer *Parent* component'imiz oluyor ve Customer component'i de *Child* component olmuş oluyor. *Parent*'tan *Child*'a prop gönderdiğimiz için de **p->c** ilişkisini kurmuş oluyoruz.
+
+* Aslında **c->p** ilişkisi de aynı mantığı taşıyor fakat burda ilişkinin tersine dönüyor olmasının nedeni *Parent*'tan *Child*'a geçmiş olduğumuz prop'un bir function olması. prop'ta gönderilen function'ın tanımlı olduğu yer *Parent* component'i olduğu için, *Child* component'i bu function'ı kullandığında *Parent* component'ine geri dönüş yapmış oluyor. Bunun da bir örneğine bakalım; 
+
+    <a href="https://codesandbox.io/s/react-ornek-10-rlekj" target="_blank"><i>React-Ornek-10</i></a>
+    ```javascript
+    const App = () => {
+        const [count, setCount] = useState(0);
+
+        const handleChange = (item) => {
+            setCount(item);
+        };
+
+        return (
+            <div className="App">
+                <Child onChange={handleChange} />
+                {count}
+            </div>
+        );
+    };
+
+    const Child = (props) => {
+        const { onChange } = props;
+
+        const handleClick = () => {
+            onChange(Math.floor(Math.random() * (100 - 0) + 0));
+        };
+
+        return <button onClick={handleClick}>Rasgele Sayı</button>;
+    };
+    ```
+
+    Örneği incelediğimizde görüyoruz ki Parent component'inde count state'imiz var ve bu component içinde count state'ini set ediyoruz fakat bu yeni değere karar veren component Child component'i. Parent'tan Child'a geçtiğimiz ``onChange`` prop'u bir function ve Child component'i bu function'a parametre geçerek Parent component'indeki ``onChange``'in değeri/tanımı olan ``handleChange``'e bu parametreyi göndermiş oluyor. Parent component'i de Child component'inden gelen bu değeri kullanarak kendi bünyesinde bulunan count state'ini update ediyor. Bu şekilde **c->p** ilişkisini kurmuş olduk.
+
+* Gelin şimdiki örneğimize bakalım. Bu örnekte **p->c** ve **c->p** ilişkilerini useEffect'le birlikte kullanarak zincirleme bir yapı oluşturdum.
+
+    <a href="https://codesandbox.io/s/react-ornek-11-jgc3w" target="_blank"><i>React-Ornek-11</i></a>
+    ```javascript
+    const App = () => {
+        const [companyName, setCompanyName] = useState("Gelecek Varlık");
+
+        const handleChange = (item) => {
+            setCompanyName(item);
+        };
+
+        return (
+            <div className="App">
+                <fieldset>
+                    <legend>App</legend>
+                    <h1>{`${companyName} Ailesine Hoş Geldiniz`}</h1>
+                    <Parent data={companyName} onChange={handleChange} />
+                </fieldset>
+            </div>
+        );
+    };
+
+    const Parent = (props) => {
+        const { data, onChange } = props;
+        const [companyName, setCompanyName] = useState("");
+
+        const handleChange = (item) => {
+            onChange(item);
+        };
+
+        useEffect(() => {
+            setCompanyName(data);
+        }, [data]);
+
+        return (
+            <div>
+                <fieldset>
+                    <legend>Parent</legend>
+                    <p>{`${companyName} Adresi: Kağıthane`}</p>
+                    <Child1 data={companyName} />
+                    <Child2 data={companyName} onChange={handleChange} />
+                </fieldset>
+            </div>
+        );
+    };
+
+    const Child1 = (props) => {
+        const { data } = props;
+        const [companyName, setCompanyName] = useState(data);
+
+        useEffect(() => {
+            setCompanyName(data);
+        }, [data]);
+
+        return (
+            <div>
+                <fieldset>
+                    <legend>Child1</legend>
+                    <div>{`${companyName} Telefon Numarası: 02124444444`}</div>
+                </fieldset>
+            </div>
+        );
+    };
+
+    const Child2 = (props) => {
+        const { data, onChange } = props;
+        const [state] = useState({
+            name1: "Gelecek Varlık",
+            name2: "Güven Varlık"
+        });
+
+        const handleChange = (e) => {
+            onChange(e.target.value);
+        };
+
+        return (
+            <div>
+                <fieldset>
+                    <legend>Child2</legend>
+                    <div>
+                        <label>{state.name1}: </label>
+                        <input
+                            type="radio"
+                            value={state.name1}
+                            onChange={handleChange}
+                            checked={data === state.name1}
+                        />
+                    </div>
+                    <div>
+                        <label>{state.name2}: </label>
+                        <input
+                            type="radio"
+                            value={state.name2}
+                            onChange={handleChange}
+                            checked={data === state.name2}
+                        />
+                    </div>
+                </fieldset>
+            </div>
+        );
+    };
+    ```
+
+    Bu örnekte dört tane component'imiz bulunmakta ve hiyerarşi **App->Parent->Child1==Child2** şeklinde fakat konunun başında da bahsettiğim gibi bir üst component'ten bir altındaki component'e gönderilen function prop güncellenecek paramtreyi bir üstündeki component'e aktarıyor ve useEffect başlıklarında da bahsettiğim gibi gelen prop'un değişimini useEffect'e bağlayıp ilgili state'in set edilmesi işlemini gerçekleştiriyoruz yani bu işlem gerçekleşirken **App->Parent->Child1==Child2** ilişkisi tam tersi davranış sergiliyor. App component'i kendini güncelleyince ise ilişki **P->C** ilişkisine geri dönüyor.
+
+## kendi hook'umuzu nasıl yazarız
+
+* hook'lar aslında javascipt function'larıdırlar peki neden function demiyoruz da hook diyoruz? Çünkü hook'ları yazarken react'ın functional component'lere sunmuş olduğu hook'ları (useState, useEffect, useRef vs.) kullanırız ve hook'lar sadece functional component'lerde ve kendi yazacağımız hook'larda kullanılabilirler, bu yüzden direk olarak function'dırlar diyemiyoruz.
+
+* Bu başlık için iki tane hook (usePrevious ve useRandomNumber) oluşturdum gelin şimdi onları inceleyelim.
+
+    <a href="https://codesandbox.io/s/useprevious-hook-iblko" target="_blank"><i>React-Ornek-12</i></a>
+    ```javascript
+    const usePrevious = (value) => {
+        const ref = useRef();
+
+        useEffect(() => {
+            ref.current = value;
+        });
+
+        return ref.current;
+    };
+
+    const App = () => {
+        const [number, setNumber] = useState(0);
+        const prevNumber = usePrevious(number);
+
+        return (
+            <div className="App">
+                <h1>
+                    Şuanki Sayı: {number} Önceki Sayı: {prevNumber}
+                </h1>
+                <button
+                    onClick={() => setNumber(Math.floor(Math.random() * (100 - 0) + 0))}
+                >
+                    Rastgele Sayı
+                </button>
+            </div>
+        );
+    };
+    ```
+
+    *useRef* ve *useEffect* kullanarak oluşturmuş olduğum *usePrevious* hook'u kendisine verilen state'in bir önceki değerini bize söylüyor.
+
+    Almış olduğu parametrenin değişimini *useEffect*'te kontrol edip ``ref``'in *current* değerini güncelliyor ve bu değeri return ediyor. *useRef* yerine *useState* kullanabilir miydik? Kullanamazdık, kullansaydık eğer ``prevNumber`` ile ``number`` her zaman aynı değere sahip olurdu çünkü *useState* update işlemi sırasında component'in yada hook'un re-render olmasını tetikler fakat *useRef* bunu yapmaz. Bu sebeple number state'inin ilk değeri 0 olarak *usePrevious*'a da gönderilmesine rağmen bu değeri göremeyiz, number state'inde gerçekleşen her bir güncellmeden sonra *usePrevious* bunu bize gösterir.
+
+    <a href="https://codesandbox.io/s/userandomnumber-fhuj9" target="_blank"><i>React-Ornek-13</i></a>
+    ```javascript
+    function useRandomNumber(range) {
+        const [state, setState] = useState();
+
+        function getRandomNumber(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min) + min);
+        }
+
+        useEffect(() => {
+            switch (range) {
+            case "0-25":
+                setState(getRandomNumber(0, 25));
+                break;
+            case "25-50":
+                setState(getRandomNumber(25, 50));
+                break;
+            case "50-75":
+                setState(getRandomNumber(50, 75));
+                break;
+            case "75-100":
+                setState(getRandomNumber(75, 100));
+                break;
+            default:
+                setState(0);
+            }
+        }, [range]);
+
+        return state;
+    }
+
+    const App = () => {
+        const [range, setRange] = useState("");
+        const value = useRandomNumber(range);
+
+        const handleChange = (e) => {
+            setRange(e.target.value);
+        };
+
+        return (
+            <div className="App">
+                <h1>Rastgele Sayı</h1>
+                <div className="Child">
+                    <div className="Input">
+                        <label>0 - 25</label>
+                        <input
+                            type="radio"
+                            value="0-25"
+                            checked={range === "0-25"}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div className="Input">
+                        <label>25 - 50</label>
+                        <input
+                            type="radio"
+                            value="25-50"
+                            checked={range === "25-50"}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div className="Input">
+                        <label>50 - 75</label>
+                        <input
+                            type="radio"
+                            value="50-75"
+                            checked={range === "50-75"}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div className="Input">
+                        <label>75 - 100</label>
+                        <input
+                            type="radio"
+                            value="75-100"
+                            checked={range === "75-100"}
+                            onChange={handleChange}
+                        />
+                    </div>
+                </div>
+                <h2>{value}</h2>
+            </div>
+        );
+    };
+    ```
+    *useState* ve *useEffect* kullanarak oluşturduğum *useRandomNumber* hook'u basit bir işlemle kendisine verilen aralıkta bir sayı generate edip return ediyor.
+
+    App component'inde range state'imiz var ve radio button'lara tıkladığımızda ilgili değer set ediliyor. State set edildiği için component re-render oluyor ve *useRandomNumber*'a yeni değer gönderilmiş oluyor. *useRandomNumber* ise gelen range bilgisine göre *useEffect* içerisinde return edilecek state'i set ediyor.
+
+
+### Umarım faydalı olmuştur. İyi çalışmalar herkese :)
+    
