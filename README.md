@@ -570,11 +570,11 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
     };
     ```
 
-    Bu örnekte dört tane component'imiz bulunmakta ve hiyerarşi **App->Parent->Child1==Child2** şeklinde fakat konunun başında da bahsettiğim gibi bir üst component'ten bir altındaki component'e gönderilen function prop güncellenecek paramtreyi bir üstündeki component'e aktarıyor ve useEffect başlıklarında da bahsettiğim gibi gelen prop'un değişimini useEffect'e bağlayıp ilgili state'in set edilmesi işlemini gerçekleştiriyoruz yani bu işlem gerçekleşirken **App->Parent->Child1==Child2** ilişkisi tam tersi davranış sergiliyor. App component'i kendini güncelleyince ise ilişki **P->C** ilişkisine geri dönüyor.
+    Bu örnekte dört tane component'imiz bulunmakta ve hiyerarşi **App->Parent->Child1==Child2** şeklinde fakat konunun başında da bahsettiğim gibi bir üst component'ten bir altındaki component'e gönderilen function prop güncellenecek paramtreyi bir üstündeki component'e aktarıyor ve useEffect başlıklarında da bahsettiğim gibi gelen prop'un değişimini useEffect'e bağlayıp ilgili state'in set edilmesi işlemini gerçekleştiriyoruz yani bu işlem gerçekleşirken **App->Parent->Child1==Child2** ilişkisi tam tersi davranış sergiliyor. App component'i kendini güncelleyince ise ilişki **p->c** ilişkisine geri dönüyor.
 
 ## kendi hook'umuzu nasıl yazarız
 
-* hook'lar aslında javascipt function'larıdırlar peki neden function demiyoruz da hook diyoruz? Çünkü hook'ları yazarken react'ın functional component'lere sunmuş olduğu hook'ları (useState, useEffect, useRef vs.) kullanırız ve hook'lar sadece functional component'lerde ve kendi yazacağımız hook'larda kullanılabilirler, bu yüzden direk olarak function'dırlar diyemiyoruz.
+* hook'lar aslında function gibi davranırlar peki neden function demiyoruz da hook diyoruz? Çünkü hook'ları yazarken react'ın functional component'lere sunmuş olduğu hook'ları (useState, useEffect, useRef vs.) kullanırız ve hook'lar sadece functional component'lerde ve kendi yazacağımız hook'larda kullanılabilirler, bu yüzden hook'ların function olduklarını söyleyemeyiz.
 
 * Bu başlık için iki tane hook (usePrevious ve useRandomNumber) oluşturdum gelin şimdi onları inceleyelim.
 
@@ -611,7 +611,7 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
 
     *useRef* ve *useEffect* kullanarak oluşturmuş olduğum *usePrevious* hook'u kendisine verilen state'in bir önceki değerini bize söylüyor.
 
-    Almış olduğu parametrenin değişimini *useEffect*'te kontrol edip ``ref``'in *current* değerini güncelliyor ve bu değeri return ediyor. *useRef* yerine *useState* kullanabilir miydik? Kullanamazdık, kullansaydık eğer ``prevNumber`` ile ``number`` her zaman aynı değere sahip olurdu çünkü *useState* update işlemi sırasında component'in yada hook'un re-render olmasını tetikler fakat *useRef* bunu yapmaz. Bu sebeple number state'inin ilk değeri 0 olarak *usePrevious*'a da gönderilmesine rağmen bu değeri göremeyiz, number state'inde gerçekleşen her bir güncellmeden sonra *usePrevious* bunu bize gösterir.
+    Almış olduğu parametrenin değişimini *useEffect*'te kontrol edip ``ref``'in *current* değerini güncelliyor ve bu değeri return ediyor. *useRef* yerine *useState* kullanabilir miydik? Kullanamazdık, kullansaydık eğer ``prevNumber`` ile ``number`` her zaman aynı değere sahip olurdu çünkü *useState* update işlemi sırasında component'in yada hook'un re-render olmasını tetikler fakat *useRef* bunu yapmaz. Bu sebeple number state'inin ilk değeri 0 olarak *usePrevious*'a da gönderilmesine rağmen bu değeri göremeyiz, number state'inde gerçekleşen her bir güncellmeden sonra *usePrevious* bir önceki değeri bize gösterir.
 
     <a href="https://codesandbox.io/s/userandomnumber-fhuj9" target="_blank"><i>React-Ornek-13</i></a>
     ```javascript
@@ -702,7 +702,7 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
     ```
     *useState* ve *useEffect* kullanarak oluşturduğum *useRandomNumber* hook'u basit bir işlemle kendisine verilen aralıkta bir sayı generate edip return ediyor.
 
-    App component'inde range state'imiz var ve radio button'lara tıkladığımızda ilgili değer set ediliyor. State set edildiği için component re-render oluyor ve *useRandomNumber*'a yeni değer gönderilmiş oluyor. *useRandomNumber* ise gelen range bilgisine göre *useEffect* içerisinde return edilecek state'i set ediyor.
+    App component'inde range state'imiz var ve radio button'lara tıkladığımızda ilgili değer set ediliyor. State set edildiği için component re-render oluyor ve *useRandomNumber*'a yeni değer gönderilmiş oluyor. *useRandomNumber* ise gelen range bilgisine göre *useEffect* içerisinde return edilecek state'i set ediyor ve return işlemi ile aksiyonunu tamamlıyor, bu şekilde de hook'umuzun kullanıldığı component'te hook tarafından generate edilmiş sayıyı görebiliyoruz.
 
 
 ### Umarım faydalı olmuştur. İyi çalışmalar herkese :)
