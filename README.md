@@ -2,11 +2,13 @@
 Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üzerinde ilerleyerek bahsetmeye çalışıcam. Bütün örneklerin linklerini code bloğunun başlığına etiketledim. Paylaşılan code bloğunun başlığına tıklayarak ilgili linkten detaylı inceleyebilirsiniz.
 
 ## Nelerden bahsedicem?
- * bir componentin mount (first render) ve update (every re-render) durumları ve bağımlılıkları, 
- * agırlıklı olarak useEffect kullanımı, 
- * birkaç örnekle useRef kullanımı, 
- * parent to child ve child to parent iletişimleri ve
- * kendi hook'umuzu nasıl yazarız.
+ * bir componentin mount (first render) ve update (every re-render) durumları ve bağımlılıkları
+ * hook nedir, kuralları nelerdir?
+ * useEffect nedir, ne işe yarar?
+ * useEffect kullanımları
+ * birkaç örnekle useRef kullanımı
+ * parent to child ve child to parent iletişimleri
+ * kendi hook'umuzu nasıl yazarız?
 
 ## Bir componentin mount (first render) ve update (every re-render) durumları ve bağımlılıkları
 
@@ -46,7 +48,34 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
 
     Örnekte de görüldüğü üzere App componentinin state durumunu yönettiği ve bu state'i Child component'i ile paylaştığı bu senaryomuzda butona tıklanması sonucu year state'i güncelleniyor. **State** güncellendiği için önce App component kendini re-render ediyor, App componentinin state'i Child componentinin **props**'u olduğu için haliyle Child componenti de props değşikliğinden dolayı re-render oluyor.
 
-## useEffect'i her durumda (mount ve update) kullanmak
+## hook nedir, kuralları nelerdir?
+
+* hook fonksiyon gibi davranan fakat react'taki state ve lifecycle durumlarını da kullanabildiğimiz yapılardır. React'ın bize sunmuş olduğu bazı hook'lar useState, useEffect, useRef vs. şeklindedir. Bu hook'ları kullanarak component'imiz ve kendi yazmış olduğumuz hook'lar içerisinde ihtiyacımız olan aksiyonları sağlayabiliriz.
+
+    Peki bu hook'ların kuralları nelerdir?
+    * functional component içerisinde kullanılabilirler,
+    * kendi yazmış olduğumuz hook içerisinde kullanılabilirler,
+    * useEffect hook'u if içerisine alınamaz,
+    * component render edilmeden, güncellenmiş olan useState hook'u yeni değeri ile birlikte kullanılamaz.
+
+    Son maddeye örnek vermek gerekirse 
+    ```javascript
+    const [amount, setAmount] = useState(100);
+
+    const handleClick = () => {
+        const expectedValue = 150;
+        setAmount(expectedValue);
+        setAmount(amount - 50);
+    };
+    ```
+
+    Burada ``expectedValue`` değerini amount'a set etmiş olsak da component henüz render olmadığı için amount 150 değerini alamamıştır dolayısıyla ``setAmount(amount - 50)`` ifadesindeki amount değeri hala 100'dür ve handleClick fonksiyonu sonlandıktan sonra amount'un güncel hali 50 olacaktır. 
+
+## useEffect nedir, ne işe yarar?
+
+* useEffect component'imizin render durumlarında (mount, update, only update vs.) veya bu durumları tetikleyen değişkenlerin (state, props vs.) güncellenmesi durumunda çalışan bir hook'tur. Bu sayede component'imizde meydana gelen çeşitli senaryolarda çeşitli aksiyonlar alabiliriz, örneğin BSN kodu değiştiğinde Tahsilat ekranındaki herhangi bir componentin kendini güncellemesi işlemini useEffect sayesinde yaparız.
+
+## useEffect'i her render'da (mount ve update) kullanmak
 
  * useEffect'in çalışma bağımlılıklarını belirlemek için arrow function'ımızdan sonra köşeli parantez içerisinde bağımlılıkları parametre olarak geçeriz. Fakat bu kullanım component'imizin kullanım durumuna göre değişiklik gösterebilir. Eğer ki component'imizin mount ve update durumlarında useEffect'i çalıştırmasını istiyorsak bağımlılıkları kullanmamıza gerek yoktur.
 
@@ -60,7 +89,7 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
 
         useEffect(() => {
             console.log(
-            "herhangi bir bağımlılığım olmadığı için her durumda çalışırım"
+            "herhangi bir bağımlılığım olmadığı için her render'da çalışırım"
             );
         });
 
@@ -337,14 +366,15 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
         );
     };
     ```
-    Örneği incelediğimizde görüyoruz ki useEffect sadece update durumlarında çalışıyor, mount durumunda inaktif. Bunu sağlayan ise useRef ile component'in mount olup olmadığını basit bir şekilde kontrol edebiliyor olmamız. İlk değerini false atadığımız useRef'in current değeri, count prop'unun mount olması sonucunda çalışan useEffect içerisinde basit bir if else kontrolü sayesinde current'ına true değeri ataması yapılıyor. Artık değer true olduğu için update işlemlerinde else bloğuna girmeyecek ve istediğimiz aksiyonu sağlayabileceğiz. 
+    Örneği incelediğimizde görüyoruz ki useEffect'in count değerine bağlı çalışması durumunda ref yardımı ile if kontrolü sağlayarak update durumlarına özel aksiyon sağlayabiliyoruz, mount durumunda ise inaktif bırakabiliyoruz. İlk değerini false atadığımız useRef'in current değeri, count prop'unun mount olması sonucunda çalışan useEffect içerisinde basit bir if else kontrolü sayesinde current'ına true değeri ataması yapılıyor. Artık değer true olduğu için update işlemlerinde else bloğuna girmeyecek ve istediğimiz aksiyonu sağlayabileceğiz. 
     
-    Tahmin ettiğiniz gibi bu senaryoda mount durumu için ayrı update durumu için ayrı bir aksiyon almak istersek else durumuna istediğimiz eklemeyi yapabiliriz.
+    Tahmin ettiğiniz gibi bu senaryoda mount durumu için ayrı update durumu için ayrı ya da her count değişimi için bir aksiyon almak istersek else durumuna istediğimiz eklemeyi yapabiliriz.
 
     Örnek vermek gerekirse; 
 
     ```javascript
     useEffect(()=> {
+        console.log("count değerinin RENDER olduğu durumlarda çalışırım")
         if (didMount.current) {
             console.log("count değerinin UPDATE olduğu durumlarda çalışırım");
         } else {
@@ -405,7 +435,7 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
     };
     ```
 
-    Örneğimizde görüyoruz ki count değeri 5 olmadığı sürece useEffect'imiz çalışmıyor ve ardından calledOnce useRef'imizin current değerini true yaptığımız için count değerini bir daha 5 yapsak dahi useEffect çalışmaz. Bunu önlemek için ````calledOnce.current = true```` kullanımından kaçınabiliriz. Böyle bir kullanımda useEffect'i birden fazla kez çalıştırmış oluruz fakat sadece 5 değerine eşit olduğunda.
+    Örneğimizde görüyoruz ki useEffect'in count değerine bağlı çalışması durumunda ref yardımı ile if kontrolü yaparak count değeri 5 olmadığı sürece ilgili aksiyon sağlanmıyor ve ardından calledOnce useRef'imizin current değerini true yaptığımız için count değerini bir daha 5 yapsak dahi ilgili aksiyonu alamayız. Bunu önlemek için ````calledOnce.current = true```` kullanımından kaçınabiliriz. Böyle bir kullanımda istediğimiz aksiyonu birden fazla kez sağlamış oluruz fakat sadece 5 değerine eşit olduğunda.
 
     Bu başlık için count örneği tabii ki mantıksız fakat gerçek bir projede faydalanmak istersek boolean bir bağımlılığımız varsa daha kullanışlı olabilir.
 
@@ -572,46 +602,49 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
 
     Bu örnekte dört tane component'imiz bulunmakta ve hiyerarşi **App->Parent->Child1==Child2** şeklinde fakat konunun başında da bahsettiğim gibi bir üst component'ten bir altındaki component'e gönderilen function prop güncellenecek paramtreyi bir üstündeki component'e aktarıyor ve useEffect başlıklarında da bahsettiğim gibi gelen prop'un değişimini useEffect'e bağlayıp ilgili state'in set edilmesi işlemini gerçekleştiriyoruz yani bu işlem gerçekleşirken **App->Parent->Child1==Child2** ilişkisi tam tersi davranış sergiliyor. App component'i kendini güncelleyince ise ilişki **p->c** ilişkisine geri dönüyor.
 
-## kendi hook'umuzu nasıl yazarız
+## kendi hook'umuzu nasıl yazarız?
 
-* hook'lar aslında function gibi davranırlar peki neden function demiyoruz da hook diyoruz? Çünkü hook'ları yazarken react'ın functional component'lere sunmuş olduğu hook'ları (useState, useEffect, useRef vs.) kullanırız ve hook'lar sadece functional component'lerde ve kendi yazacağımız hook'larda kullanılabilirler, bu yüzden hook'ların function olduklarını söyleyemeyiz.
+* kendi hook'umuzu nasıl yazarızdan önce neden yazarız sorusuna değinmekte fayda var. Eğer bir component'te ya da bir projede bir işlemi birden fazla kez kullanıyorsak bunu bir hook yardımıyla daha sade bir kullanım haline getirebiliriz. 
 
-* Bu başlık için iki tane hook (usePrevious ve useRandomNumber) oluşturdum gelin şimdi onları inceleyelim.
+    Örnek vermek gerekirse bir projede belli başlı bilgileri localStorage'a yazarız ve yeri geldiğinde bu bilgiyi localStorage'dan isteriz. Bunu bir çok yerde yaptığımızda gereksiz kod kalabalığı yaratmış oluruz, bunun yerine localStorage'da yazma ve okuma işlemi yapan custom bir hook oluşturursak hem daha okunaklı hem de maintainable bir kodumuz olmuş olur.
 
-    <a href="https://codesandbox.io/s/useprevious-hook-iblko" target="_blank"><i>React-Ornek-12</i></a>
+* hook'lar aslında function gibi davranırlar peki neden function demiyoruz da hook diyoruz? Çünkü hook'ları yazarken (en başta da bahsettiğim gibi) react'ın functional component'lere sunmuş olduğu hook'ları (useState, useEffect, useRef vs.) kullanırız ve hook'lar sadece functional component'lerde ve kendi yazacağımız hook'larda kullanılabilirler, bu yüzden hook'ların function olduklarını söyleyemeyiz.
+
+* Bu başlık için iki tane hook (useLocalStorage ve useRandomNumber) oluşturdum gelin şimdi onları inceleyelim.
+
+    <a href="https://codesandbox.io/s/uselocalstoragehook-54gno" target="_blank"><i>React-Ornek-12</i></a>
     ```javascript
-    const usePrevious = (value) => {
-        const ref = useRef();
-
-        useEffect(() => {
-            ref.current = value;
+    const useLocalStorageState = (key, value) => {
+        const [state, setState] = useState(() => {
+            try {
+                return JSON.parse(window.localStorage.getItem(key) || value);
+            } catch (e) {
+                console.log(e);
+                return value;
+            }
         });
 
-        return ref.current;
+        useEffect(() => {
+            window.localStorage.setItem(key, state);
+        }, [key, state]);
+
+        return [state, setState];
     };
 
     const App = () => {
-        const [number, setNumber] = useState(0);
-        const prevNumber = usePrevious(number);
+        const [count, setCount] = useLocalStorageState("localStorage-count", 0);
 
         return (
             <div className="App">
-                <h1>
-                    Şuanki Sayı: {number} Önceki Sayı: {prevNumber}
-                </h1>
-                <button
-                    onClick={() => setNumber(Math.floor(Math.random() * (100 - 0) + 0))}
-                >
-                    Rastgele Sayı
-                </button>
+                <button onClick={() => setCount(count + 1)}>{count}</button>
             </div>
         );
     };
     ```
 
-    *useRef* ve *useEffect* kullanarak oluşturmuş olduğum *usePrevious* hook'u kendisine verilen state'in bir önceki değerini bize söylüyor.
-
-    Almış olduğu parametrenin değişimini *useEffect*'te kontrol edip ``ref``'in *current* değerini güncelliyor ve bu değeri return ediyor. *useRef* yerine *useState* kullanabilir miydik? Kullanamazdık, kullansaydık eğer ``prevNumber`` ile ``number`` her zaman aynı değere sahip olurdu çünkü *useState* update işlemi sırasında component'in yada hook'un re-render olmasını tetikler fakat *useRef* bunu yapmaz. Bu sebeple number state'inin ilk değeri 0 olarak *usePrevious*'a da gönderilmesine rağmen bu değeri göremeyiz, number state'inde gerçekleşen her bir güncellmeden sonra *usePrevious* bir önceki değeri bize gösterir.
+    *useState* ve *useEffect* kullanarak oluşturduğum *useLocalStorage* hook'u key ve value şeklinde iki parametre alıyor ve return ettiği değerler useState'in state ve setState durumları. Bu nedenledir ki kullanmak istediğimiz yerde tanımlarken aynı useState tanımlar gibi tanımlama yapıyoruz (destructring). Diğer işlemlerse aslında bildiğimiz localStorage'dan okuma ve yazma işlemleri. Bunu yaparken önce hook'umuzda bir state tanımlıyoruz ve bu state'in initial değeri parametre geçilen key değerinden yapılan okumadan (eğer hata yoksa) geliyor. Eğer ilgili key yoksa o an geçilmiş olan value değeri state'e atanıyor. Daha sonra state değişiminden dolayı re-render olan hook'umuz useEffect içerisinde yeni state değerini localStorage'a yazıyor. 
+    
+    Bu şekilde basit bir hook yazarak localStorage işlemlerimizi gerçekleştirmiş olduk.
 
     <a href="https://codesandbox.io/s/userandomnumber-fhuj9" target="_blank"><i>React-Ornek-13</i></a>
     ```javascript
