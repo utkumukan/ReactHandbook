@@ -7,7 +7,7 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
  * useEffect nedir, ne işe yarar?
  * useEffect kullanımları
  * birkaç örnekle useRef kullanımı
- * parent to child ve child to parent iletişimleri
+ * parent component'ten child component'e function prop geçmek 
  * kendi hook'umuzu nasıl yazarız?
 
 ## Bir componentin mount (first render) ve update (every re-render) durumları ve bağımlılıkları
@@ -435,7 +435,7 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
     };
     ```
 
-    Örneğimizde görüyoruz ki useEffect'in count değerine bağlı çalışması durumunda ref yardımı ile if kontrolü yaparak count değeri 5 olmadığı sürece ilgili aksiyon sağlanmıyor ve ardından calledOnce useRef'imizin current değerini true yaptığımız için count değerini bir daha 5 yapsak dahi ilgili aksiyonu alamayız. Bunu önlemek için ````calledOnce.current = true```` kullanımından kaçınabiliriz. Böyle bir kullanımda istediğimiz aksiyonu birden fazla kez sağlamış oluruz fakat sadece 5 değerine eşit olduğunda.
+    Örneğimizde görüyoruz ki useEffect'in count değerine bağlı çalışması durumunda ref yardımı ile if kontrolü yaparak count değeri 5 olmadığı sürece ilgili aksiyon sağlanmıyor ve ardından calledOnce useRef'imizin current değerini true yaptığımız için count değerini bir daha 5 yapsak dahi ilgili aksiyonu alamayız. Yani useRef yardımıyla useEffect'imizden sadece tek bir update durumu için faydalanmış olduk.
 
     Bu başlık için count örneği tabii ki mantıksız fakat gerçek bir projede faydalanmak istersek boolean bir bağımlılığımız varsa daha kullanışlı olabilir.
 
@@ -449,23 +449,29 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
 
         if (sgkFlag === true) {
             getSocialInsurences();
+            calledOnce.current = true;
         }
     }, [sgkFlag]);
     ```
 
-## parent to child (p->c) & child to parent (c->p) ilişkileri
+## parent component'ten child component'e function prop geçmek
 
-* **p->c** ilişkisini kurmak için kullandığımız component'e prop geçmemiz yeterli ve bunu sık sık yapıyoruz. Örneğin;
+* *Parent*'tan *Child*'a string, boolean, number vs. prop geçme işlemlerini sık sık yapıyoruz. Örneğin;
 
     ```javascript
-    const [code] = useState('BSN0000000');
+    const [state] = useState({
+        code: 'BSN0000000',
+        sgkFlag: false
+    });
 
-    return <Customer code={code} />;
+    return <Customer code={state.code} sgkFlag={state.sgkFlag} />;
     ```
 
-    Bu kullanımda Customer component'ini çağırdığımız yer *Parent* component'imiz oluyor ve Customer component'i de *Child* component olmuş oluyor. *Parent*'tan *Child*'a prop gönderdiğimiz için de **p->c** ilişkisini kurmuş oluyoruz.
+    Bu tarz function içermeyen kullanımlarda prop geçilmiş oluyor ve aksiyonumuzu tamamlamış oluyoruz, *Parent* ve *Child* componentin ilişkisi bir sonraki render işlemine kadar sonlanmış oluyor. 
+    
+    Fakat *Parent*'tan *Child*'a function gönderdiğimizde durum biraz farklı oluyor.
 
-* Aslında **c->p** ilişkisi de aynı mantığı taşıyor fakat burda ilişkinin tersine dönüyor olmasının nedeni *Parent*'tan *Child*'a geçmiş olduğumuz prop'un bir function olması. prop'ta gönderilen function'ın tanımlı olduğu yer *Parent* component'i olduğu için, *Child* component'i bu function'ı kullandığında *Parent* component'ine geri dönüş yapmış oluyor. Bunun da bir örneğine bakalım; 
+*  prop'ta gönderilen function'ın tanımlı olduğu yer *Parent* component'i olduğu için, *Child* component'i bu function'ı kullandığında *Parent* component'ine geri dönüş yapmış oluyor. Bunun da bir örneğine bakalım; 
 
     <a href="https://codesandbox.io/s/react-ornek-10-rlekj" target="_blank"><i>React-Ornek-10</i></a>
     ```javascript
@@ -495,9 +501,9 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
     };
     ```
 
-    Örneği incelediğimizde görüyoruz ki Parent component'inde count state'imiz var ve bu component içinde count state'ini set ediyoruz fakat bu yeni değere karar veren component Child component'i. Parent'tan Child'a geçtiğimiz ``onChange`` prop'u bir function ve Child component'i bu function'a parametre geçerek Parent component'indeki ``onChange``'in değeri/tanımı olan ``handleChange``'e bu parametreyi göndermiş oluyor. Parent component'i de Child component'inden gelen bu değeri kullanarak kendi bünyesinde bulunan count state'ini update ediyor. Bu şekilde **c->p** ilişkisini kurmuş olduk.
+    Örneği incelediğimizde görüyoruz ki Parent component'inde count state'imiz var ve bu component içinde count state'ini set ediyoruz fakat bu yeni değere karar veren component Child component'i. Parent'tan Child'a geçtiğimiz ``onChange`` prop'u bir function ve Child component'i bu function'a parametre geçerek Parent component'indeki ``onChange``'in değeri/tanımı olan ``handleChange``'e bu parametreyi göndermiş oluyor. Parent component'i de Child component'inden gelen bu değeri kullanarak kendi bünyesinde bulunan count state'ini update ediyor.
 
-* Gelin şimdiki örneğimize bakalım. Bu örnekte **p->c** ve **c->p** ilişkilerini useEffect'le birlikte kullanarak zincirleme bir yapı oluşturdum.
+* Gelin şimdiki örneğimize bakalım. Bu örnekte **Parent**'tan ve **Child**'a prop gönderme işlemlerini useEffect'le birlikte kullanarak zincirleme bir yapı oluşturdum.
 
     <a href="https://codesandbox.io/s/react-ornek-11-jgc3w" target="_blank"><i>React-Ornek-11</i></a>
     ```javascript
@@ -600,7 +606,7 @@ Herkese merhaba. Bu çalışmada React ile ilgili birkaç konudan senaryolar üz
     };
     ```
 
-    Bu örnekte dört tane component'imiz bulunmakta ve hiyerarşi **App->Parent->Child1==Child2** şeklinde fakat konunun başında da bahsettiğim gibi bir üst component'ten bir altındaki component'e gönderilen function prop güncellenecek paramtreyi bir üstündeki component'e aktarıyor ve useEffect başlıklarında da bahsettiğim gibi gelen prop'un değişimini useEffect'e bağlayıp ilgili state'in set edilmesi işlemini gerçekleştiriyoruz yani bu işlem gerçekleşirken **App->Parent->Child1==Child2** ilişkisi tam tersi davranış sergiliyor. App component'i kendini güncelleyince ise ilişki **p->c** ilişkisine geri dönüyor.
+    Bu örnekte dört tane component'imiz bulunmakta ve hiyerarşi **App->Parent->Child1==Child2** şeklinde fakat konunun başında da bahsettiğim gibi bir üst component'ten bir altındaki component'e gönderilen function prop güncellenecek paramtreyi bir üstündeki component'e aktarıyor ve useEffect başlıklarında da bahsettiğim gibi gelen prop'un değişimini useEffect'e bağlayıp ilgili state'in set edilmesi işlemini gerçekleştiriyoruz.
 
 ## kendi hook'umuzu nasıl yazarız?
 
